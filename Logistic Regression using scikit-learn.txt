@@ -1,0 +1,20 @@
+# Import necessary libraries
+from sklearn.linear_model import LogisticRegression
+
+# Sample data (replace this with your own data)
+# X is the feature matrix (independent variables)
+# y is the target vector (dependent variable, 0 or 1 for binary classification)
+X = [[30], [40], [50], [60], [70]]  # Example feature: Age
+y = [0, 0, 1, 1, 1]  # Example target: Purchased (1 = Yes, 0 = No)
+
+# Create the Logistic Regression model
+model = LogisticRegression()
+
+# Train the model
+model.fit(X, y)
+
+# Make a prediction (for example, predicting for age 65)
+prediction = model.predict([[65]])
+
+# Output the prediction
+print("Prediction for Age 65:", prediction)

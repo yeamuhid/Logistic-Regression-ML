@@ -1,0 +1,77 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score, roc_curve
+
+# Load your dataset
+# Example: using a dataset with features 'Age', 'Salary', and target 'Purchased'
+# Replace with your own dataset
+data = {
+    'Age': [22, 25, 47, 52, 46, 56, 56, 57, 36, 28],
+    'Salary': [15000, 29000, 60000, 43000, 41000, 80000, 82000, 87000, 52000, 42000],
+    'Purchased': [0, 0, 1, 1, 1, 1, 1, 1, 0, 0]
+}
+df = pd.DataFrame(data)
+
+# Features and target
+X = df[['Age', 'Salary']]  # Independent variables
+y = df['Purchased']        # Target variable
+
+# Split the data into training and test sets (70% training, 30% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Feature Scaling
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create the Logistic Regression model with L2 regularization (default)
+model = LogisticRegression()
+
+# Hyperparameter tuning using GridSearchCV
+param_grid = {
+    'C': [0.1, 1, 10, 100],   # Regularization strength
+    'penalty': ['l1', 'l2', 'elasticnet', 'none'],  # Type of regularization
+    'solver': ['liblinear', 'saga']  # Solvers for different penalties
+}
+
+# Grid search to find the best hyperparameters
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, scoring='accuracy', verbose=0)
+grid_search.fit(X_train_scaled, y_train)
+
+# Best model after tuning
+best_model = grid_search.best_estimator_
+
+# Making predictions on the test set
+y_pred = best_model.predict(X_test_scaled)
+
+# Evaluating the model
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, y_pred)
+
+# Print evaluation metrics
+print(f"Best Parameters: {grid_search.best_params_}")
+print(f"Accuracy: {accuracy:.2f}")
+print("Confusion Matrix:")
+print(conf_matrix)
+print("Classification Report:")
+print(class_report)
+print(f"AUC-ROC Score: {roc_auc:.2f}")
+
+# ROC Curve
+fpr, tpr, thresholds = roc_curve(y_test, best_model.predict_proba(X_test_scaled)[:, 1])
+
+# Plotting the ROC curve
+import matplotlib.pyplot as plt
+plt.plot(fpr, tpr, label="AUC = %.2f" % roc_auc)
+plt.plot([0, 1], [0, 1], linestyle="--")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
+plt.legend(loc="lower right")
+plt.show()
